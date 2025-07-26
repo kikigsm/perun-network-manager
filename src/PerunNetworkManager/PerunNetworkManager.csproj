@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\Images\perun_icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Company>Perun Software</Company>
+    <Product>Perun Network Manager</Product>
+    <Copyright>Copyright © 2025 Perun Software</Copyright>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Description>Advanced Network Profile Manager with Subnet Scanner</Description>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+    <PackageReference Include="System.Management" Version="7.0.2" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="7.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="MaterialDesignColors" Version="2.1.4" />
+    <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
+    <PackageReference Include="System.DirectoryServices" Version="7.0.1" />
+    <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+    <PackageReference Include="Microsoft.Toolkit.Win32.UI.Controls" Version="6.1.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PerunNetworkManager.Core\PerunNetworkManager.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\Images\**\*" />
+    <Resource Include="Resources\Styles\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Languages\*.resx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="app.manifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\Images\" />
+    <Folder Include="Resources\Styles\" />
+    <Folder Include="Resources\Languages\" />
+  </ItemGroup>
+
+</Project>
