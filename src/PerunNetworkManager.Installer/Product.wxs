@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  
+  <?define ProductName = "Perun Network Manager" ?>
+  <?define ProductVersion = "1.0.0.0" ?>
+  <?define ProductManufacturer = "Perun Software" ?>
+  <?define ProductUpgradeCode = "12345678-1234-5678-9ABC-123456789012" ?>
+  <?define ProductDescription = "Advanced Network Profile Manager with Subnet Scanner" ?>
+  
+  <Product Id="*" 
+           Name="$(var.ProductName)" 
+           Language="1033" 
+           Version="$(var.ProductVersion)" 
+           Manufacturer="$(var.ProductManufacturer)" 
+           UpgradeCode="$(var.ProductUpgradeCode)">
+    
+    <Package InstallerVersion="500" 
+             Compressed="yes" 
+             InstallScope="perMachine" 
+             Description="$(var.ProductDescription)"
+             Comments="Installs $(var.ProductName)"
+             Manufacturer="$(var.ProductManufacturer)"
+             InstallPrivileges="elevated" />
+
+    <!-- Allow downgrades -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <!-- Media -->
+    <MediaTemplate EmbedCab="yes" />
+
+    <!-- Prerequisites -->
+    <PropertyRef Id="WIX_IS_NETFRAMEWORK_48_OR_LATER_INSTALLED"/>
+    <Condition Message="This application requires .NET Framework 4.8 or later. Please install .NET Framework 4.8 then run this installer again.">
+      <![CDATA[Installed OR WIX_IS_NETFRAMEWORK_48_OR_LATER_INSTALLED]]>
+    </Condition>
+
+    <!-- .NET 6 Runtime Check -->
+    <Property Id="DOTNET6INSTALLED">
+      <RegistrySearch Id="CheckForDotNet6"
+                      Root="HKLM"
+                      Key="SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedfx\Microsoft.WindowsDesktop.App"
+                      Name="6.0.0"
+                      Type="raw" />
+    </Property>
+    
+    <Condition Message="This application requires .NET 6.0 Desktop Runtime. Please install .NET 6.0 Desktop Runtime then run this installer again.">
+      <![CDATA[Installed OR DOTNET6INSTALLED]]>
+    </Condition>
+
+    <!-- Installation Directory -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="ManufacturerFolder" Name="$(var.ProductManufacturer)">
+          <Directory Id="INSTALLFOLDER" Name="$(var.ProductName)" />
+        </Directory>
+      </Directory>
+      
+      <!-- Start Menu -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="$(var.ProductName)" />
+      </Directory>
+      
+      <!-- Desktop -->
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      
+      <!-- Startup -->
+      <Directory Id="StartupFolder" Name="Startup" />
+    </Directory>
+
+    <!-- Features -->
+    <Feature Id="ProductFeature" 
+             Title="$(var.ProductName)" 
+             Level="1" 
+             Description="Main application files"
+             ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcuts" />
+      <ComponentRef Id="DesktopShortcut" />
+      <ComponentRef Id="RegistryEntries" />
+    </Feature>
+    
+    <Feature Id="StartupFeature" 
+             Title="Start with Windows" 
+             Level="1000" 
+             Description="Automatically start $(var.ProductName) when Windows starts">
+      <ComponentRef Id="StartupShortcut" />
+    </Feature>
+
+    <!-- UI -->
+    <UIRef Id="WixUI_FeatureTree" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+    
+    <!-- Custom UI -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.bmp" />
+
+    <!-- Properties for customization -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    <Property Id="ARPPRODUCTICON" Value="PerunIcon.exe" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/perunsoftware/perun-network-manager" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/perunsoftware/perun-network-manager" />
+    <Property Id="ARPNOREPAIR" Value="1" />
+    <Property Id="ARPNOMODIFY" Value="1" />
+
+    <!-- File Type Association -->
+    <Property Id="ARPPRODUCTICON" Value="PerunIcon.exe" />
+  </Product>
+
+  <!-- Application Shortcuts Component -->
+  <Fragment>
+    <ComponentGroup Id="ApplicationShortcuts">
+      <Component Id="ApplicationShortcuts" 
+                 Guid="A1B2C3D4-E5F6-7890-ABCD-EF1234567890" 
+                 Directory="ApplicationProgramsFolder">
+        
+        <Shortcut Id="ApplicationStartMenuShortcut"
+                  Name="$(var.ProductName)"
+                  Description="$(var.ProductDescription)"
+                  Target="[#PerunNetworkManager.exe]"
+                  WorkingDirectory="INSTALLFOLDER"
+                  Icon="PerunIcon.exe" />
+        
+        <Shortcut Id="UninstallProduct"
+                  Name="Uninstall $(var.ProductName)"
+                  Target="[System64Folder]msiexec.exe"
+                  Arguments="/x [ProductCode]"
+                  Description="Uninstalls $(var.ProductName)" />
+        
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+        <RegistryValue Root="HKCU" 
+                       Key="Software\$(var.ProductManufacturer)\$(var.ProductName)" 
+                       Name="installed" 
+                       Type="integer" 
+                       Value="1" 
+                     KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+  <!-- Startup Shortcut Component -->
+  <Fragment>
+    <Component Id="StartupShortcut" 
+               Guid="C3D4E5F6-G7H8-9012-CDEF-012345678902" 
+               Directory="StartupFolder">
+      
+      <Shortcut Id="StartupShortcut"
+                Name="$(var.ProductName)"
+                Description="Start $(var.ProductName) with Windows"
+                Target="[#PerunNetworkManager.exe]"
+                Arguments="-minimized"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="PerunIcon.exe" />
+      
+      <RegistryValue Root="HKCU" 
+                     Key="Software\$(var.ProductManufacturer)\$(var.ProductName)" 
+                     Name="startup_shortcut" 
+                     Type="integer" 
+                     Value="1" 
+                     KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+  <!-- Registry Entries Component -->
+  <Fragment>
+    <Component Id="RegistryEntries" 
+               Guid="D4E5F6G7-H8I9-0123-DEF0-123456789013" 
+               Directory="INSTALLFOLDER">
+      
+      <!-- File Association for .npx files -->
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Classes\.npx">
+        <RegistryValue Type="string" Value="PerunNetworkManager.ProfileFile" />
+      </RegistryKey>
+      
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Classes\PerunNetworkManager.ProfileFile">
+        <RegistryValue Type="string" Value="Perun Network Profile" />
+        <RegistryValue Name="DefaultIcon" Type="string" Value="[#PerunNetworkManager.exe],0" />
+      </RegistryKey>
+      
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Classes\PerunNetworkManager.ProfileFile\shell\open\command">
+        <RegistryValue Type="string" Value='"[#PerunNetworkManager.exe]" "%1"' />
+      </RegistryKey>
+
+      <!-- Application Registration -->
+      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.ProductManufacturer)\$(var.ProductName)">
+        <RegistryValue Name="InstallPath" Type="string" Value="[INSTALLFOLDER]" />
+        <RegistryValue Name="Version" Type="string" Value="$(var.ProductVersion)" />
+        <RegistryValue Name="InstallDate" Type="string" Value="[Date]" />
+      </RegistryKey>
+      
+      <!-- Add to Programs and Features -->
+      <RegistryKey Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[ProductCode]">
+        <RegistryValue Name="DisplayName" Type="string" Value="$(var.ProductName)" />
+        <RegistryValue Name="DisplayVersion" Type="string" Value="$(var.ProductVersion)" />
+        <RegistryValue Name="Publisher" Type="string" Value="$(var.ProductManufacturer)" />
+        <RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLFOLDER]" />
+        <RegistryValue Name="DisplayIcon" Type="string" Value="[#PerunNetworkManager.exe]" />
+        <RegistryValue Name="HelpLink" Type="string" Value="https://github.com/perunsoftware/perun-network-manager" />
+        <RegistryValue Name="URLInfoAbout" Type="string" Value="https://github.com/perunsoftware/perun-network-manager" />
+        <RegistryValue Name="NoModify" Type="integer" Value="1" />
+        <RegistryValue Name="NoRepair" Type="integer" Value="1" />
+        <RegistryValue Name="EstimatedSize" Type="integer" Value="50000" />
+      </RegistryKey>
+
+      <RegistryValue Root="HKLM" 
+                     Key="SOFTWARE\$(var.ProductManufacturer)\$(var.ProductName)" 
+                     Name="registry_entries" 
+                     Type="integer" 
+                     Value="1" 
+                     KeyPath="yes" />
+    </Component>
+  </Fragment>
+
+  <!-- Icon -->
+  <Icon Id="PerunIcon.exe" SourceFile="$(var.PerunNetworkManager.TargetPath)" />
+</Wix>1" 
+                       KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <!-- Desktop Shortcut Component -->
+  <Fragment>
+    <Component Id="DesktopShortcut" 
+               Guid="B2C3D4E5-F6G7-8901-BCDE-F01234567891" 
+               Directory="DesktopFolder">
+      
+      <Shortcut Id="DesktopShortcut"
+                Name="$(var.ProductName)"
+                Description="$(var.ProductDescription)"
+                Target="[#PerunNetworkManager.exe]"
+                WorkingDirectory="INSTALLFOLDER"
+                Icon="PerunIcon.exe" />
+      
+      <RegistryValue Root="HKCU" 
+                     Key="Software\$(var.ProductManufacturer)\$(var.ProductName)" 
+                     Name="desktop_shortcut" 
+                     Type="integer" 
+                     Value="
