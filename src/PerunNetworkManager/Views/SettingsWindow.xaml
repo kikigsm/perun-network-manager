@@ -1,0 +1,726 @@
+<Window x:Class="PerunNetworkManager.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:converters="clr-namespace:PerunNetworkManager.Converters"
+        xmlns:vm="clr-namespace:PerunNetworkManager.ViewModels"
+        mc:Ignorable="d"
+        Title="Settings - Perun Network Manager"
+        Height="700" Width="900"
+        WindowStartupLocation="CenterOwner"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        d:DataContext="{d:DesignInstance Type=vm:SettingsViewModel}">
+    
+    <Window.Resources>
+        <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        
+        <Style x:Key="SettingHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+
+        <Style x:Key="SettingGroupStyle" TargetType="materialDesign:Card">
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="0,0,0,16" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <materialDesign:ColorZone Grid.Row="0" 
+                                  Mode="PrimaryMid" 
+                                  Padding="16"
+                                  materialDesign:ShadowAssist.ShadowDepth="Depth2">
+            <Grid>
+                <TextBlock Text="Settings" 
+                           Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                           VerticalAlignment="Center" />
+                
+                <Button Command="{Binding CloseCommand}"
+                        Style="{StaticResource MaterialDesignToolForegroundButton}"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="Close" />
+                </Button>
+            </Grid>
+        </materialDesign:ColorZone>
+
+        <!-- Settings Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <Grid Margin="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Category List -->
+                <ListBox Grid.Column="0" 
+                         SelectedIndex="{Binding SelectedCategoryIndex}"
+                         Style="{StaticResource MaterialDesignNavigationPrimaryListBox}">
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Cog" Margin="0,0,16,0" />
+                            <TextBlock Text="General" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Palette" Margin="0,0,16,0" />
+                            <TextBlock Text="Appearance" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="NetworkOutline" Margin="0,0,16,0" />
+                            <TextBlock Text="Network" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Flash" Margin="0,0,16,0" />
+                            <TextBlock Text="Performance" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Shield" Margin="0,0,16,0" />
+                            <TextBlock Text="Security" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Database" Margin="0,0,16,0" />
+                            <TextBlock Text="Backup" />
+                        </StackPanel>
+                    </ListBoxItem>
+                    
+                    <ListBoxItem>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="InformationOutline" Margin="0,0,16,0" />
+                            <TextBlock Text="About" />
+                        </StackPanel>
+                    </ListBoxItem>
+                </ListBox>
+
+                <!-- Settings Pages -->
+                <StackPanel Grid.Column="1" Margin="24,0,0,0">
+                    <!-- General Settings -->
+                    <StackPanel Visibility="{Binding IsGeneralVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="General Settings" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Startup" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding StartWithWindows}"
+                                          Content="Start Perun Network Manager with Windows"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding StartMinimized}"
+                                          Content="Start minimized to system tray"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding MinimizeToTray}"
+                                          Content="Minimize to system tray instead of taskbar"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding ShowSplashScreen}"
+                                          Content="Show splash screen on startup" />
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Language" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                                          SelectedItem="{Binding SelectedLanguage}"
+                                          DisplayMemberPath="DisplayName"
+                                          materialDesign:HintAssist.Hint="Select Language"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          Width="300"
+                                          HorizontalAlignment="Left" />
+                                
+                                <TextBlock Text="Application restart required for language change"
+                                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                           Margin="0,8,0,0" />
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Updates" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding CheckForUpdates}"
+                                          Content="Automatically check for updates"
+                                          Margin="0,0,0,8" />
+                                
+                                <StackPanel Orientation="Horizontal" Margin="24,0,0,8">
+                                    <TextBlock Text="Check frequency:" VerticalAlignment="Center" Margin="0,0,12,0" />
+                                    <ComboBox ItemsSource="{Binding UpdateFrequencies}"
+                                              SelectedItem="{Binding SelectedUpdateFrequency}"
+                                              IsEnabled="{Binding CheckForUpdates}"
+                                              Width="150" />
+                                </StackPanel>
+                                
+                                <Button Command="{Binding CheckNowCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,8,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:NumericUpDown Grid.Column="1"
+                                                                Value="{Binding WolPort}"
+                                                                Minimum="1" Maximum="65535" />
+                                </Grid>
+
+                                <CheckBox IsChecked="{Binding SendMultipleWolPackets}"
+                                          Content="Send multiple WOL packets for reliability"
+                                          Margin="0,12,0,0" />
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+
+                    <!-- Performance Settings -->
+                    <StackPanel Visibility="{Binding IsPerformanceVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Performance Settings" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Application Performance" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding EnableHardwareAcceleration}"
+                                          Content="Enable hardware acceleration"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding EnableAnimations}"
+                                          Content="Enable UI animations"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding ReduceMemoryUsage}"
+                                          Content="Reduce memory usage (may impact performance)"
+                                          Margin="0,0,0,16" />
+
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="200" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" 
+                                               Text="UI refresh rate (ms):" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,0" />
+                                    <materialDesign:NumericUpDown Grid.Column="1"
+                                                                Value="{Binding UIRefreshRate}"
+                                                                Minimum="100" Maximum="5000" />
+                                </Grid>
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Data Management" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="200" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" 
+                                               Text="Cache size (MB):" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,8" />
+                                    <materialDesign:NumericUpDown Grid.Row="0" Grid.Column="1"
+                                                                Value="{Binding CacheSizeMB}"
+                                                                Minimum="10" Maximum="1000"
+                                                                Margin="0,0,0,8" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" 
+                                               Text="Log retention (days):" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,0" />
+                                    <materialDesign:NumericUpDown Grid.Row="1" Grid.Column="1"
+                                                                Value="{Binding LogRetentionDays}"
+                                                                Minimum="1" Maximum="365" />
+                                </Grid>
+
+                                <Button Command="{Binding ClearCacheCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,16,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="DeleteSweep" Margin="0,0,8,0" />
+                                        <TextBlock Text="Clear Cache" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+
+                    <!-- Security Settings -->
+                    <StackPanel Visibility="{Binding IsSecurityVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Security Settings" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Profile Security" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding EncryptProfiles}"
+                                          Content="Encrypt network profiles"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding RequirePasswordForProfiles}"
+                                          Content="Require password to edit profiles"
+                                          IsEnabled="{Binding EncryptProfiles}"
+                                          Margin="0,0,0,8" />
+                                
+                                <Button Command="{Binding ChangePasswordCommand}"
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        IsEnabled="{Binding RequirePasswordForProfiles}"
+                                        HorizontalAlignment="Left"
+                                        Margin="24,0,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="Key" Margin="0,0,8,0" />
+                                        <TextBlock Text="Change Password" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Script Execution" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding AllowScriptExecution}"
+                                          Content="Allow profile scripts to execute"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding WarnBeforeScriptExecution}"
+                                          Content="Warn before executing scripts"
+                                          IsEnabled="{Binding AllowScriptExecution}"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding LogScriptExecution}"
+                                          Content="Log all script executions"
+                                          IsEnabled="{Binding AllowScriptExecution}"
+                                          Margin="0,0,0,16" />
+
+                                <TextBlock Text="Allowed script extensions (comma-separated):"
+                                           IsEnabled="{Binding AllowScriptExecution}"
+                                           Margin="0,0,0,4" />
+                                <TextBox Text="{Binding AllowedScriptExtensions}"
+                                         IsEnabled="{Binding AllowScriptExecution}"
+                                         materialDesign:HintAssist.Hint="e.g., .bat, .ps1, .cmd"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Width="300"
+                                         HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+
+                    <!-- Backup Settings -->
+                    <StackPanel Visibility="{Binding IsBackupVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Backup & Restore" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Automatic Backup" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding EnableAutoBackup}"
+                                          Content="Enable automatic backup"
+                                          Margin="0,0,0,8" />
+                                
+                                <Grid IsEnabled="{Binding EnableAutoBackup}" Margin="24,0,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0"
+                                               Text="Backup frequency:"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,16,8" />
+                                    <ComboBox Grid.Row="0" Grid.Column="1"
+                                              ItemsSource="{Binding BackupFrequencies}"
+                                              SelectedItem="{Binding SelectedBackupFrequency}"
+                                              Margin="0,0,0,8" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0"
+                                               Text="Backup location:"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,16,8" />
+                                    <TextBox Grid.Row="1" Grid.Column="1"
+                                             Text="{Binding BackupLocation}"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             IsReadOnly="True"
+                                             Margin="0,0,8,8" />
+                                    <Button Grid.Row="1" Grid.Column="2"
+                                            Command="{Binding BrowseBackupLocationCommand}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            VerticalAlignment="Bottom"
+                                            Margin="0,0,0,8">
+                                        <materialDesign:PackIcon Kind="FolderOpen" />
+                                    </Button>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0"
+                                               Text="Keep backups:"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,16,0" />
+                                    <materialDesign:NumericUpDown Grid.Row="2" Grid.Column="1"
+                                                                Value="{Binding BackupRetentionCount}"
+                                                                Minimum="1" Maximum="100" />
+                                </Grid>
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Manual Backup & Restore" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock Text="Create a backup of all settings and profiles"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,8" />
+                                        <Button Command="{Binding BackupNowCommand}"
+                                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                                HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="BackupRestore" Margin="0,0,8,0" />
+                                                <TextBlock Text="Backup Now" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                        <TextBlock Text="Restore settings and profiles from backup"
+                                                   TextWrapping="Wrap"
+                                                   Margin="0,0,0,8" />
+                                        <Button Command="{Binding RestoreCommand}"
+                                                Style="{StaticResource MaterialDesignOutlinedButton}"
+                                                HorizontalAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Restore" Margin="0,0,8,0" />
+                                                <TextBlock Text="Restore" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+
+                                <TextBlock Text="{Binding LastBackupDate, StringFormat='Last backup: {0}'}"
+                                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                           Margin="0,16,0,0" />
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+
+                    <!-- About -->
+                    <StackPanel Visibility="{Binding IsAboutVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="About" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <Image Source="/Resources/perun_logo.png" 
+                                       Width="80" Height="80"
+                                       Margin="0,0,24,0" />
+
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="Perun Network Manager" 
+                                               FontSize="24" FontWeight="Medium"
+                                               Margin="0,0,0,8" />
+                                    
+                                    <TextBlock Text="{Binding Version, StringFormat='Version {0}'}"
+                                               Margin="0,0,0,4" />
+                                    
+                                    <TextBlock Text="© 2024 Perun Software. All rights reserved."
+                                               Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                               Margin="0,0,0,16" />
+
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Command="{Binding ViewLicenseCommand}"
+                                                Style="{StaticResource MaterialDesignFlatButton}"
+                                                Margin="0,0,8,0">
+                                            License
+                                        </Button>
+                                        
+                                        <Button Command="{Binding ViewChangelogCommand}"
+                                                Style="{StaticResource MaterialDesignFlatButton}"
+                                                Margin="0,0,8,0">
+                                            Changelog
+                                        </Button>
+                                        
+                                        <Button Command="{Binding OpenWebsiteCommand}"
+                                                Style="{StaticResource MaterialDesignFlatButton}">
+                                            Website
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="System Information" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Operating System:" />
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OSVersion}" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text=".NET Version:" />
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding DotNetVersion}" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Install Location:" />
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding InstallLocation}" 
+                                               TextWrapping="Wrap" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Data Directory:" />
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DataDirectory}" 
+                                               TextWrapping="Wrap" />
+                                </Grid>
+
+                                <Button Command="{Binding OpenDataFolderCommand}"
+                                        Style="{StaticResource MaterialDesignFlatButton}"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,16,0,0">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="FolderOpen" Margin="0,0,8,0" />
+                                        <TextBlock Text="Open Data Folder" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" 
+                Background="{DynamicResource MaterialDesignToolBarBackground}"
+                Padding="16,8">
+            <Grid>
+                <StackPanel Orientation="Horizontal">
+                    <Button Command="{Binding ResetToDefaultsCommand}"
+                            Style="{StaticResource MaterialDesignFlatButton}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Restore" Margin="0,0,8,0" />
+                            <TextBlock Text="Reset to Defaults" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Command="{Binding SaveCommand}"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ContentSave" Margin="0,0,8,0" />
+                            <TextBlock Text="Save" />
+                        </StackPanel>
+                    </Button>
+
+                    <Button Command="{Binding CancelCommand}"
+                            Style="{StaticResource MaterialDesignFlatButton}">
+                        Cancel
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Snackbar -->
+        <materialDesign:Snackbar x:Name="SettingsSnackbar"
+                                Grid.Row="2"
+                                MessageQueue="{materialDesign:MessageQueue}" />
+    </Grid>
+</Window>ign:PackIcon Kind="Update" Margin="0,0,8,0" />
+                                        <TextBlock Text="Check Now" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+
+                    <!-- Appearance Settings -->
+                    <StackPanel Visibility="{Binding IsAppearanceVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Appearance Settings" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Theme" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <RadioButton GroupName="Theme"
+                                             IsChecked="{Binding IsLightTheme}"
+                                             Content="Light Theme"
+                                             Margin="0,0,0,8" />
+                                
+                                <RadioButton GroupName="Theme"
+                                             IsChecked="{Binding IsLightTheme, Converter={StaticResource InverseBooleanConverter}}"
+                                             Content="Dark Theme"
+                                             Margin="0,0,0,16" />
+                                
+                                <TextBlock Text="Primary Color" FontWeight="Medium" Margin="0,0,0,8" />
+                                <materialDesign:ColorPicker Color="{Binding PrimaryColor}"
+                                                          HorizontalAlignment="Left"
+                                                          Margin="0,0,0,16" />
+                                
+                                <TextBlock Text="Accent Color" FontWeight="Medium" Margin="0,0,0,8" />
+                                <materialDesign:ColorPicker Color="{Binding AccentColor}"
+                                                          HorizontalAlignment="Left" />
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Window" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <CheckBox IsChecked="{Binding ShowStatusBar}"
+                                          Content="Show status bar"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding ShowToolbar}"
+                                          Content="Show toolbar"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding RememberWindowPosition}"
+                                          Content="Remember window size and position" />
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+
+                    <!-- Network Settings -->
+                    <StackPanel Visibility="{Binding IsNetworkVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Network Settings" Style="{StaticResource SettingHeaderStyle}" />
+                        
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Network Scanning" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="200" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" 
+                                               Text="Default timeout (ms):" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,8" />
+                                    <materialDesign:NumericUpDown Grid.Row="0" Grid.Column="1"
+                                                                Value="{Binding DefaultPingTimeout}"
+                                                                Minimum="100" Maximum="10000"
+                                                                Margin="0,0,0,8" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" 
+                                               Text="Concurrent scans:" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,8" />
+                                    <materialDesign:NumericUpDown Grid.Row="1" Grid.Column="1"
+                                                                Value="{Binding MaxConcurrentScans}"
+                                                                Minimum="1" Maximum="500"
+                                                                Margin="0,0,0,8" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" 
+                                               Text="Port scan threads:" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,8" />
+                                    <materialDesign:NumericUpDown Grid.Row="2" Grid.Column="1"
+                                                                Value="{Binding PortScanThreads}"
+                                                                Minimum="1" Maximum="100"
+                                                                Margin="0,0,0,8" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" 
+                                               Text="Scan history days:" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,0" />
+                                    <materialDesign:NumericUpDown Grid.Row="3" Grid.Column="1"
+                                                                Value="{Binding ScanHistoryDays}"
+                                                                Minimum="1" Maximum="365" />
+                                </Grid>
+
+                                <CheckBox IsChecked="{Binding ResolveHostnames}"
+                                          Content="Automatically resolve hostnames"
+                                          Margin="0,16,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding PerformPortScan}"
+                                          Content="Perform port scan during network discovery"
+                                          Margin="0,0,0,8" />
+                                
+                                <CheckBox IsChecked="{Binding DetectDeviceTypes}"
+                                          Content="Automatically detect device types" />
+                            </StackPanel>
+                        </materialDesign:Card>
+
+                        <materialDesign:Card Style="{StaticResource SettingGroupStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Wake-on-LAN" FontWeight="Medium" Margin="0,0,0,12" />
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="200" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" 
+                                               Text="Broadcast port:" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,16,0" />
+                                    <materialDes
