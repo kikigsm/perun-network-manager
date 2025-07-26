@@ -1,0 +1,554 @@
+<Window x:Class="PerunNetworkManager.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:viewmodels="clr-namespace:PerunNetworkManager.ViewModels"
+        xmlns:views="clr-namespace:PerunNetworkManager.Views"
+        mc:Ignorable="d"
+        Title="Perun Network Manager"
+        Height="900" Width="1400"
+        MinHeight="700" MinWidth="1200"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        WindowStartupLocation="CenterScreen"
+        StateChanged="Window_StateChanged"
+        Closing="Window_Closing">
+
+    <Window.DataContext>
+        <viewmodels:MainViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.LightBlue.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- Custom Styles -->
+            <Style x:Key="PerunButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Background" Value="#1E3A8A" />
+                <Setter Property="BorderBrush" Value="#1E3A8A" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="15,8" />
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="#3B82F6" />
+                        <Setter Property="BorderBrush" Value="#3B82F6" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            
+            <Style x:Key="PerunSecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignOutlinedButton}">
+                <Setter Property="BorderBrush" Value="#1E3A8A" />
+                <Setter Property="Foreground" Value="#1E3A8A" />
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="15,8" />
+            </Style>
+            
+            <Style x:Key="PerunDangerButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">
+                <Setter Property="Background" Value="#EF4444" />
+                <Setter Property="BorderBrush" Value="#EF4444" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Margin" Value="5" />
+                <Setter Property="Padding" Value="15,8" />
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <!-- System Tray Icon -->
+        <tb:TaskbarIcon x:Name="SystemTrayIcon"
+                        IconSource="/Resources/Images/perun_icon.ico"
+                        ToolTipText="Perun Network Manager"
+                        TrayMouseDoubleClick="SystemTrayIcon_TrayMouseDoubleClick"
+                        Visibility="Visible">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show" Click="ShowWindow_Click" FontWeight="Bold" />
+                    <Separator />
+                    <MenuItem Header="Quick Profile Switch" ItemsSource="{Binding Profiles}">
+                        <MenuItem.ItemTemplate>
+                            <DataTemplate>
+                                <MenuItem Header="{Binding Name}" 
+                                         Command="{Binding DataContext.ApplyProfileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                         CommandParameter="{Binding}" />
+                            </DataTemplate>
+                        </MenuItem.ItemTemplate>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="Network Scanner" Click="ShowNetworkScanner_Click" />
+                    <MenuItem Header="Diagnostics" Click="ShowDiagnostics_Click" />
+                    <Separator />
+                    <MenuItem Header="Exit" Click="ExitApplication_Click" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+
+        <!-- Main Window Layout -->
+        <DockPanel>
+            <!-- Menu Bar -->
+            <Menu DockPanel.Dock="Top" Background="{DynamicResource MaterialDesignPaper}">
+                <MenuItem Header="_File">
+                    <MenuItem Header="_New Profile" Command="{Binding NewProfileCommand}" 
+                             InputGestureText="Ctrl+N">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Plus" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Import Profiles..." Command="{Binding ImportProfilesCommand}"
+                             InputGestureText="Ctrl+I">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Import" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Export Profiles..." Command="{Binding ExportProfilesCommand}"
+                             InputGestureText="Ctrl+E">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Export" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="_Settings" Command="{Binding ShowSettingsCommand}"
+                             InputGestureText="Ctrl+,">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Settings" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="E_xit" Click="ExitApplication_Click"
+                             InputGestureText="Alt+F4" />
+                </MenuItem>
+                
+                <MenuItem Header="_Tools">
+                    <MenuItem Header="_Network Scanner" Command="{Binding ShowNetworkScannerCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Radar" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Diagnostics" Command="{Binding ShowDiagnosticsCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Stethoscope" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Adapter Manager" Command="{Binding ShowAdapterManagerCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="NetworkOutline" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="_Ping Test" Command="{Binding PingTestCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Pulse" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Speed Test" Command="{Binding SpeedTestCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Speedometer" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+                
+                <MenuItem Header="_View">
+                    <MenuItem Header="_Refresh" Command="{Binding RefreshCommand}"
+                             InputGestureText="F5">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Refresh" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="_Dark Theme" IsCheckable="True" 
+                             IsChecked="{Binding IsDarkTheme}" />
+                    <MenuItem Header="_Always on Top" IsCheckable="True"
+                             IsChecked="{Binding IsAlwaysOnTop}" />
+                </MenuItem>
+                
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_User Guide" Command="{Binding ShowHelpCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="HelpCircle" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_Keyboard Shortcuts" Command="{Binding ShowShortcutsCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Keyboard" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="_Check for Updates" Command="{Binding CheckUpdatesCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Update" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="_About" Command="{Binding ShowAboutCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="Information" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
+
+            <!-- Toolbar -->
+            <ToolBarTray DockPanel.Dock="Top" Background="{DynamicResource MaterialDesignCardBackground}">
+                <ToolBar>
+                    <Button Command="{Binding NewProfileCommand}" 
+                            ToolTip="New Profile (Ctrl+N)"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Plus" />
+                    </Button>
+                    
+                    <Button Command="{Binding SaveProfileCommand}" 
+                            ToolTip="Save Profile (Ctrl+S)"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="ContentSave" />
+                    </Button>
+                    
+                    <Button Command="{Binding DeleteProfileCommand}" 
+                            ToolTip="Delete Profile (Delete)"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Delete" />
+                    </Button>
+                    
+                    <Separator />
+                    
+                    <Button Command="{Binding ApplyProfileCommand}" 
+                            CommandParameter="{Binding SelectedProfile}"
+                            ToolTip="Apply Selected Profile (F5)"
+                            Style="{StaticResource PerunButtonStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Play" VerticalAlignment="Center" Margin="0,0,5,0" />
+                            <TextBlock Text="Apply" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                    
+                    <Separator />
+                    
+                    <Button Command="{Binding ShowNetworkScannerCommand}" 
+                            ToolTip="Network Scanner"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Radar" />
+                    </Button>
+                    
+                    <Button Command="{Binding ShowDiagnosticsCommand}" 
+                            ToolTip="Network Diagnostics"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Stethoscope" />
+                    </Button>
+                    
+                    <Button Command="{Binding ShowAdapterManagerCommand}" 
+                            ToolTip="Network Adapters"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="NetworkOutline" />
+                    </Button>
+                    
+                    <Separator />
+                    
+                    <Button Command="{Binding RefreshCommand}" 
+                            ToolTip="Refresh (F5)"
+                            Style="{StaticResource MaterialDesignToolButton}">
+                        <materialDesign:PackIcon Kind="Refresh" />
+                    </Button>
+                </ToolBar>
+            </ToolBarTray>
+
+            <!-- Status Bar -->
+            <StatusBar DockPanel.Dock="Bottom" Background="{DynamicResource MaterialDesignCardBackground}">
+                <StatusBarItem>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Circle" 
+                                               Foreground="{Binding StatusColor}" 
+                                               VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding StatusText}" Margin="5,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StatusBarItem>
+                
+                <Separator />
+                
+                <StatusBarItem>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Account" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding CurrentProfile.Name, StringFormat='Profile: {0}'}" 
+                                 Margin="5,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StatusBarItem>
+                
+                <Separator />
+                
+                <StatusBarItem>
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Network" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding ActiveAdapterName, StringFormat='Adapter: {0}'}" 
+                                 Margin="5,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StatusBarItem>
+                
+                <StatusBarItem HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding LastUpdateTime, StringFormat='Last Updated: {0:HH:mm:ss}'}" 
+                                 Margin="5,0" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StatusBarItem>
+            </StatusBar>
+
+            <!-- Main Content Area -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="350" MinWidth="300" />
+                    <ColumnDefinition Width="5" />
+                    <ColumnDefinition Width="*" MinWidth="500" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Profile List Panel -->
+                <materialDesign:Card Grid.Column="0" Margin="10" materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Profile List Header -->
+                        <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="15,10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="Network Profiles" 
+                                         FontSize="16" FontWeight="SemiBold" 
+                                         Foreground="White" VerticalAlignment="Center" />
+                                
+                                <Button Grid.Column="1" 
+                                      Command="{Binding NewProfileCommand}"
+                                      Style="{StaticResource MaterialDesignIconButton}"
+                                      ToolTip="Add New Profile">
+                                    <materialDesign:PackIcon Kind="Plus" Foreground="White" />
+                                </Button>
+                            </Grid>
+                        </materialDesign:ColorZone>
+
+                        <!-- Search Box -->
+                        <Grid Grid.Row="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            
+                            <TextBox Grid.Row="0" 
+                                   Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                   materialDesign:HintAssist.Hint="Search profiles..."
+                                   materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                   materialDesign:TextFieldAssist.LeadingIcon="Magnify"
+                                   Margin="15,10,15,5" />
+
+                            <!-- Profile List -->
+                            <ListBox Grid.Row="1" 
+                                   ItemsSource="{Binding FilteredProfiles}"
+                                   SelectedItem="{Binding SelectedProfile}"
+                                   Margin="10,5,10,10"
+                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <materialDesign:Card Margin="0,2" Padding="0" 
+                                                           materialDesign:ShadowAssist.ShadowDepth="Depth1">
+                                            <Border BorderBrush="{Binding IsActive, Converter={StaticResource BooleanToBrushConverter}}" 
+                                                  BorderThickness="0,0,4,0">
+                                                <Grid Margin="12,8">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="Auto" />
+                                                    </Grid.RowDefinitions>
+                                                    
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Profile Icon -->
+                                                    <materialDesign:PackIcon Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                                                                           Kind="{Binding Icon, Converter={StaticResource IconConverter}}"
+                                                                           Width="24" Height="24"
+                                                                           VerticalAlignment="Center"
+                                                                           Margin="0,0,10,0"
+                                                                           Foreground="{Binding IsActive, Converter={StaticResource ActiveColorConverter}}" />
+
+                                                    <!-- Profile Name -->
+                                                    <TextBlock Grid.Row="0" Grid.Column="1"
+                                                             Text="{Binding Name}"
+                                                             FontWeight="SemiBold"
+                                                             FontSize="14"
+                                                             TextTrimming="CharacterEllipsis" />
+
+                                                    <!-- Profile Description -->
+                                                    <TextBlock Grid.Row="1" Grid.Column="1"
+                                                             Text="{Binding Description}"
+                                                             FontSize="12"
+                                                             Opacity="0.7"
+                                                             TextTrimming="CharacterEllipsis"
+                                                             Margin="0,2,0,0" />
+
+                                                    <!-- Action Buttons -->
+                                                    <StackPanel Grid.Row="0" Grid.Column="2" Grid.RowSpan="2"
+                                                              Orientation="Horizontal"
+                                                              VerticalAlignment="Center">
+                                                        
+                                                        <Button Command="{Binding DataContext.ApplyProfileCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                              CommandParameter="{Binding}"
+                                                              Style="{StaticResource MaterialDesignIconButton}"
+                                                              ToolTip="Apply Profile"
+                                                              Width="24" Height="24">
+                                                            <materialDesign:PackIcon Kind="Play" Width="16" Height="16" />
+                                                        </Button>
+                                                        
+                                                        <Button Command="{Binding DataContext.EditProfileCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                              CommandParameter="{Binding}"
+                                                              Style="{StaticResource MaterialDesignIconButton}"
+                                                              ToolTip="Edit Profile"
+                                                              Width="24" Height="24">
+                                                            <materialDesign:PackIcon Kind="Pencil" Width="16" Height="16" />
+                                                        </Button>
+                                                        
+                                                        <Button Command="{Binding DataContext.DeleteProfileCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                              CommandParameter="{Binding}"
+                                                              Style="{StaticResource MaterialDesignIconButton}"
+                                                              ToolTip="Delete Profile"
+                                                              Width="24" Height="24">
+                                                            <materialDesign:PackIcon Kind="Delete" Width="16" Height="16" />
+                                                        </Button>
+                                                    </StackPanel>
+
+                                                    <!-- Network Info -->
+                                                    <TextBlock Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"
+                                                             FontSize="11"
+                                                             Opacity="0.6"
+                                                             Margin="0,4,0,0">
+                                                        <Run Text="{Binding UseDHCP, Converter={StaticResource DHCPConverter}}" />
+                                                        <Run Text="{Binding IPAddress, StringFormat=' • {0}', TargetNullValue=''}" />
+                                                    </TextBlock>
+                                                </Grid>
+                                            </Border>
+                                        </materialDesign:Card>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+
+                        <!-- Profile Actions -->
+                        <UniformGrid Grid.Row="2" Rows="1" Margin="10">
+                            <Button Content="Import" 
+                                  Command="{Binding ImportProfilesCommand}"
+                                  Style="{StaticResource PerunSecondaryButtonStyle}" />
+                            <Button Content="Export" 
+                                  Command="{Binding ExportProfilesCommand}"
+                                  Style="{StaticResource PerunSecondaryButtonStyle}" />
+                        </UniformGrid>
+                    </Grid>
+                </materialDesign:Card>
+
+                <!-- Splitter -->
+                <GridSplitter Grid.Column="1" 
+                            HorizontalAlignment="Stretch" 
+                            Background="{DynamicResource MaterialDesignDivider}" />
+
+                <!-- Main Content Panel -->
+                <materialDesign:Card Grid.Column="2" Margin="10" materialDesign:ShadowAssist.ShadowDepth="Depth2">
+                    <Grid>
+                        <!-- Content Based on Selected View -->
+                        <ContentControl Content="{Binding CurrentView}">
+                            <ContentControl.Resources>
+                                <!-- Profile Editor View -->
+                                <DataTemplate DataType="{x:Type viewmodels:ProfileEditorViewModel}">
+                                    <views:ProfileEditorView />
+                                </DataTemplate>
+                                
+                                <!-- Network Scanner View -->
+                                <DataTemplate DataType="{x:Type viewmodels:NetworkScannerViewModel}">
+                                    <views:NetworkScannerView />
+                                </DataTemplate>
+                                
+                                <!-- Diagnostics View -->
+                                <DataTemplate DataType="{x:Type viewmodels:DiagnosticViewModel}">
+                                    <views:DiagnosticToolsView />
+                                </DataTemplate>
+                                
+                                <!-- Adapter Manager View -->
+                                <DataTemplate DataType="{x:Type viewmodels:NetworkAdapterViewModel}">
+                                    <views:NetworkAdapterView />
+                                </DataTemplate>
+                            </ContentControl.Resources>
+                        </ContentControl>
+
+                        <!-- Default Welcome Screen -->
+                        <Grid Visibility="{Binding CurrentView, Converter={StaticResource NullToVisibilityConverter}}">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialDesign:PackIcon Kind="NetworkOutline" 
+                                                       Width="128" Height="128" 
+                                                       Foreground="{DynamicResource MaterialDesignBodyLight}" 
+                                                       HorizontalAlignment="Center" />
+                                
+                                <TextBlock Text="Welcome to Perun Network Manager" 
+                                         FontSize="24" FontWeight="SemiBold"
+                                         HorizontalAlignment="Center" 
+                                         Margin="0,20,0,10" />
+                                
+                                <TextBlock Text="Select a profile from the list or create a new one to get started." 
+                                         FontSize="14" 
+                                         HorizontalAlignment="Center"
+                                         Opacity="0.7"
+                                         TextAlignment="Center"
+                                         Margin="0,0,0,30" />
+                                
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Button Content="New Profile" 
+                                          Command="{Binding NewProfileCommand}"
+                                          Style="{StaticResource PerunButtonStyle}"
+                                          Margin="5" />
+                                    
+                                    <Button Content="Network Scanner" 
+                                          Command="{Binding ShowNetworkScannerCommand}"
+                                          Style="{StaticResource PerunSecondaryButtonStyle}"
+                                          Margin="5" />
+                                    
+                                    <Button Content="Diagnostics" 
+                                          Command="{Binding ShowDiagnosticsCommand}"
+                                          Style="{StaticResource PerunSecondaryButtonStyle}"
+                                          Margin="5" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </materialDesign:Card>
+            </Grid>
+        </DockPanel>
+
+        <!-- Loading Overlay -->
+        <Grid Background="#80000000" 
+              Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <materialDesign:Card Width="300" Height="150" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ProgressBar IsIndeterminate="True" 
+                               Width="200" 
+                               Margin="20" />
+                    <TextBlock Text="{Binding LoadingMessage}" 
+                             HorizontalAlignment="Center" 
+                             FontSize="14" 
+                             Margin="20,0,20,20" />
+                </StackPanel>
+            </materialDesign:Card>
+        </Grid>
+    </Grid>
+</Window>
