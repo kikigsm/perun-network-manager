@@ -721,4 +721,310 @@ namespace PerunNetworkManager.ViewModels
                                 Arguments = $"interface ip set dns \"{_selectedAdapter.Name}\" dhcp",
                                 UseShellExecute = false,
                                 CreateNoWindow = true,
-                                Verb = "
+                                Verb = "runas"
+                            }
+                        };
+
+                        await Task.Run(() =>
+                        {
+                            dnsProcess.Start();
+                            dnsProcess.WaitForExit();
+                        });
+                    }
+                }
+                else
+                {
+                    // Set static IP
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "netsh",
+                            Arguments = $"interface ip set address \"{_selectedAdapter.Name}\" static {ConfigureIP} {ConfigureSubnet} {ConfigureGateway}",
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            Verb = "runas"
+                        }
+                    };
+
+                    await Task.Run(() =>
+                    {
+                        process.Start();
+                        process.WaitForExit();
+                    });
+                }
+
+                // Set DNS servers if not automatic
+                if (!ConfigureAutoDNS)
+                {
+                    if (!string.IsNullOrWhiteSpace(ConfigureDNS1))
+                    {
+                        var dns1Process = new Process
+                        {
+                            StartInfo = new ProcessStartInfo
+                            {
+                                FileName = "netsh",
+                                Arguments = $"interface ip set dns \"{_selectedAdapter.Name}\" static {ConfigureDNS1} primary",
+                                UseShellExecute = false,
+                                CreateNoWindow = true,
+                                Verb = "runas"
+                            }
+                        };
+
+                        await Task.Run(() =>
+                        {
+                            dns1Process.Start();
+                            dns1Process.WaitForExit();
+                        });
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(ConfigureDNS2))
+                    {
+                        var dns2Process = new Process
+                        {
+                            StartInfo = new ProcessStartInfo
+                            {
+                                FileName = "netsh",
+                                Arguments = $"interface ip add dns \"{_selectedAdapter.Name}\" {ConfigureDNS2} index=2",
+                                UseShellExecute = false,
+                                CreateNoWindow = true,
+                                Verb = "runas"
+                            }
+                        };
+
+                        await Task.Run(() =>
+                        {
+                            dns2Process.Start();
+                            dns2Process.WaitForExit();
+                        });
+                    }
+                }
+
+                DialogHost.CloseDialogCommand.Execute(true, null);
+                ShowSnackbar("IP configuration applied successfully");
+                
+                // Refresh to show new settings
+                await Task.Delay(2000); // Give Windows time to apply settings
+                await RefreshAdaptersAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error applying IP configuration");
+                ShowSnackbar("Failed to apply IP configuration. Admin rights required.");
+            }
+        }
+
+        /// <summary>
+        /// Opens Windows Network Connections control panel.
+        /// </summary>
+        private void OpenNetworkConnections()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "ncpa.cpl",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error opening network connections");
+                ShowSnackbar("Failed to open network connections");
+            }
+        }
+
+        /// <summary>
+        /// Shows a message in the snackbar.
+        /// </summary>
+        private void ShowSnackbar(string message)
+        {
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                var snackbar = App.Current.MainWindow?.FindName("AdapterSnackbar") as Snackbar;
+                snackbar?.MessageQueue?.Enqueue(message);
+            });
+        }
+
+        /// <summary>
+        /// Starts the refresh timer.
+        /// </summary>
+        public void StartRefreshTimer()
+        {
+            _refreshTimer?.Start();
+        }
+
+        /// <summary>
+        /// Stops the refresh timer.
+        /// </summary>
+        public void StopRefreshTimer()
+        {
+            _refreshTimer?.Stop();
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    /// <summary>
+    /// Represents information about a network adapter.
+    /// </summary>
+    public class NetworkAdapterInfo : INotifyPropertyChanged
+    {
+        private string _status;
+        private bool _isEnabled;
+        private long _bytesSent;
+        private long _bytesReceived;
+        private long _packetsSent;
+        private long _packetsReceived;
+        private DateTime _lastUpdated;
+        private bool _showStatistics;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public AdapterType AdapterType { get; set; }
+        
+        public string Status
+        {
+            get => _status;
+            set
+            {
+                _status = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set
+            {
+                _isEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string IPAddress { get; set; }
+        public string SubnetMask { get; set; }
+        public string Gateway { get; set; }
+        public string DnsServers { get; set; }
+        public bool IsDHCPEnabled { get; set; }
+        public string MACAddress { get; set; }
+        public long Speed { get; set; }
+        public string Manufacturer { get; set; }
+
+        public long BytesSent
+        {
+            get => _bytesSent;
+            set
+            {
+                _bytesSent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public long BytesReceived
+        {
+            get => _bytesReceived;
+            set
+            {
+                _bytesReceived = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public long PacketsSent
+        {
+            get => _packetsSent;
+            set
+            {
+                _packetsSent = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public long PacketsReceived
+        {
+            get => _packetsReceived;
+            set
+            {
+                _packetsReceived = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public DateTime LastUpdated
+        {
+            get => _lastUpdated;
+            set
+            {
+                _lastUpdated = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool ShowStatistics
+        {
+            get => _showStatistics;
+            set
+            {
+                _showStatistics = value;
+                OnPropertyChanged();
+            }
+        }
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    /// <summary>
+    /// Adapter type enumeration.
+    /// </summary>
+    public enum AdapterType
+    {
+        Unknown,
+        Ethernet,
+        Wireless,
+        Virtual,
+        Loopback
+    }
+
+    /// <summary>
+    /// Simple text input dialog.
+    /// </summary>
+    public class TextInputDialog : Window
+    {
+        public string InputText { get; set; }
+        public string Message { get; set; }
+
+        public TextInputDialog()
+        {
+            // Simple dialog implementation
+            Width = 400;
+            Height = 200;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        }
+    }
+
+    /// <summary>
+    /// Adapter details window.
+    /// </summary>
+    public class AdapterDetailsWindow : Window
+    {
+        public AdapterDetailsWindow(NetworkAdapterInfo adapter)
+        {
+            Title = $"Adapter Details - {adapter.Name}";
+            Width = 600;
+            Height = 500;
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            // Implementation would show detailed adapter information
+        }
+    }
+}
