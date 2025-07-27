@@ -1,4 +1,10 @@
-    public class CountToVisibilityConverter : IValueConverter
+using System;
+using System.Globalization;
+using System.Windows.Data;
+
+namespace PerunNetworkManager.Converters
+{
+{ public class CountToVisibilityConverter : IValueConverter
     {
         public int Threshold { get; set; } = 0;
         public Visibility AboveThresholdVisibility { get; set; } = Visibility.Visible;
@@ -42,4 +48,5 @@
         {
             throw new NotImplementedException();
         }
+    }
     }
